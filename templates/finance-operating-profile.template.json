@@ -1,0 +1,11 @@
+{
+  "entity": "owner to complete",
+  "timezone": "owner to complete",
+  "currency": "owner to confirm",
+  "minor_units": null,
+  "basis": "owner to confirm",
+  "fiscal_calendar": "owner to complete",
+  "materiality_policy": "owner to supply; no default",
+  "reporting_cadence": "owner to complete",
+  "tenant_confirmed": true
+}

@@ -1,0 +1,36 @@
+# Provider-neutral. No credentials or account identifiers belong here.
+memory:
+  write_approval: true
+skills:
+  write_approval: true
+curator:
+  consolidate: false
+delegation:
+  subagent_auto_approve: false
+security:
+  redact_secrets: true
+approvals:
+  mode: manual
+  cron_mode: deny
+  single_query_mode: deny
+  deny:
+    - "*curl*api.stripe.com*"
+    - "*curl*quickbooks.api.intuit.com*"
+    - "*curl*api.xero.com*"
+    - "*curl*api.plaid.com*"
+    - "*curl*api.bill.com*"
+    - "*curl*bank*transfer*"
+    - "*curl*payment*"
+    - "*curl*payroll*"
+    - "*wget*bank*"
+    - "*wget*payment*"
+    - "*printenv*"
+    - "*env |*"
+    - "*cat *.env*"
+    - "*cat */.env*"
+    - "*/proc/*/environ*"
+    - "*auth.json*"
+terminal:
+  home_mode: profile
+  env_passthrough: []
+# No cron jobs, integrations, MCP servers, provider, or model are configured.

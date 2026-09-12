@@ -1,0 +1,5 @@
+{
+  "registry_version": "1.0.0",
+  "exchange_rates": [],
+  "note": "Intentionally empty. Each rate requires base, quote, rate, effective date, source, and method."
+}

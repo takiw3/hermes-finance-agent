@@ -1,0 +1,15 @@
+{
+  "from": "Finance",
+  "to": "Jarvis",
+  "entity": "owner to complete",
+  "period": "owner to complete",
+  "as_of": "owner to complete",
+  "request": "owner to complete",
+  "redacted_aggregates": [],
+  "assumptions": [],
+  "unknowns": [],
+  "decision_needed": "owner to complete",
+  "artifact_path": "local path only",
+  "contains_raw_financial_data": false,
+  "is_approval": false
+}

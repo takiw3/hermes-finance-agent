@@ -1,0 +1,22 @@
+{
+  "entity": "Synthetic Co",
+  "period_start": "2026-01-01",
+  "period_end": "2026-01-31",
+  "as_of": "2026-02-01T09:00:00-05:00",
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "minor_units": 2,
+  "accounting_basis": "accrual",
+  "sources": ["synthetic-support-001"],
+  "source_coverage": "complete synthetic example",
+  "freshness": "synthetic as-of only",
+  "reconciliation_status": "not_tested",
+  "entry_id": "SYN-JE-001",
+  "purpose": "Demonstrate a balanced proposal only",
+  "lines": [
+    {"account_proposal": "Owner-confirmed expense", "debit": "25.00", "credit": "0.00", "rationale": "Synthetic support"},
+    {"account_proposal": "Owner-confirmed payable", "debit": "0.00", "credit": "25.00", "rationale": "Synthetic support"}
+  ],
+  "unposted": true,
+  "qualified_review_required": true
+}

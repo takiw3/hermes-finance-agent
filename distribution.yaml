@@ -1,0 +1,18 @@
+name: finance
+version: 1.0.0
+description: >-
+  Careful senior finance operator for management reporting, planning, controls,
+  and decision support using owner-provided local exports. Read, analyze, plan,
+  draft, and create local artifacts only; never mutates a financial system.
+hermes_requires: ">=0.20.0"
+author: Taki Wong / TakiGPT AI Inc.
+license: MIT
+distribution_owned:
+  - distribution.yaml
+  - profile.yaml
+  - SOUL.md
+  - config.yaml
+  - templates
+  - schemas
+  - references
+  - skills/finance-core

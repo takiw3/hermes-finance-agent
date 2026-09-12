@@ -1,0 +1,3 @@
+transaction_id,date,entity,currency,amount,account
+SYN-001,2026-01-02,Synthetic Co,USD,1000.00,Revenue
+SYN-002,2026-01-02,Synthetic Co,USD,-400.00,Direct costs

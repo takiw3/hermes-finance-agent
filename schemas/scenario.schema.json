@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Scenario",
+  "description": "Artifacts are local drafts only; missing is never zero.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "entity",
+    "period_start",
+    "period_end",
+    "as_of",
+    "timezone",
+    "currency",
+    "minor_units",
+    "accounting_basis",
+    "sources",
+    "source_coverage",
+    "freshness",
+    "reconciliation_status",
+    "scenario_name",
+    "inputs",
+    "formulas",
+    "outputs",
+    "not_a_guarantee"
+  ],
+  "properties": {
+    "entity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "as_of": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "minor_units": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9
+    },
+    "accounting_basis": {
+      "enum": [
+        "cash",
+        "accrual"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "source_coverage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "freshness": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reconciliation_status": {
+      "enum": [
+        "reconciled",
+        "unreconciled",
+        "not_tested",
+        "partial"
+      ]
+    },
+    "scenario_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "formulas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "not_a_guarantee": {
+      "const": true
+    }
+  }
+}

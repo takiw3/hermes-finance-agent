@@ -1,0 +1,29 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Validate distribution
+        run: python3 scripts/validate.py
+      - name: Validate offline eval corpus
+        run: python3 scripts/run_evals.py
+      - name: Unit, behavior, and security tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Static installation and optional local Hermes test
+        run: bash tests/installation/test_install.sh
+      - name: Optional local Hermes update-preservation test
+        run: bash tests/update/test_update_preserves_owner_data.sh
+      - name: Honest local compatibility report
+        run: python3 tests/update/test_version_compatibility.py

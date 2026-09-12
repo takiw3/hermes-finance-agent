@@ -1,0 +1,21 @@
+{
+  "entity": "Synthetic Co",
+  "period_start": "2026-01-01",
+  "period_end": "2026-01-31",
+  "as_of": "2026-02-01T09:00:00-05:00",
+  "timezone": "America/New_York",
+  "currency": "USD",
+  "minor_units": 2,
+  "accounting_basis": "accrual",
+  "sources": [
+    "source-id"
+  ],
+  "source_coverage": "owner to complete",
+  "freshness": "owner to complete",
+  "reconciliation_status": "not_tested",
+  "scenario_name": "owner to name",
+  "inputs": [],
+  "formulas": [],
+  "outputs": [],
+  "not_a_guarantee": true
+}

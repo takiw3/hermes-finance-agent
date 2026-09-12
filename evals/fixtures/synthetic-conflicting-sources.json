@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "sources": [
+    {
+      "id": "ledger-a",
+      "level": "locked ledger",
+      "total": "100.00"
+    },
+    {
+      "id": "ledger-b",
+      "level": "locked ledger",
+      "total": "101.00"
+    }
+  ],
+  "resolution": "unresolved"
+}

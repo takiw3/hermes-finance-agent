@@ -1,0 +1,21 @@
+{
+  "synthetic": true,
+  "opening_cash": "100.00",
+  "currency": "USD",
+  "minor_units": 2,
+  "weeks": [
+    {"week": 1, "week_start": "2026-02-02", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 2, "week_start": "2026-02-09", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 3, "week_start": "2026-02-16", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 4, "week_start": "2026-02-23", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 5, "week_start": "2026-03-02", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 6, "week_start": "2026-03-09", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 7, "week_start": "2026-03-16", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 8, "week_start": "2026-03-23", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 9, "week_start": "2026-03-30", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 10, "week_start": "2026-04-06", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 11, "week_start": "2026-04-13", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 12, "week_start": "2026-04-20", "receipts": "10.00", "disbursements": "4.00"},
+    {"week": 13, "week_start": "2026-04-27", "receipts": "10.00", "disbursements": "4.00"}
+  ]
+}

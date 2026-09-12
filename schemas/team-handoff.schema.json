@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Team handoff",
+  "description": "Artifacts are local drafts only; missing is never zero.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "from",
+    "to",
+    "entity",
+    "period",
+    "as_of",
+    "request",
+    "redacted_aggregates",
+    "assumptions",
+    "unknowns",
+    "decision_needed",
+    "artifact_path",
+    "contains_raw_financial_data",
+    "is_approval"
+  ],
+  "properties": {
+    "from": {
+      "const": "Finance"
+    },
+    "to": {
+      "enum": [
+        "Jarvis",
+        "Marketing",
+        "Sales",
+        "Customer Support",
+        "Developer",
+        "Ads"
+      ]
+    },
+    "entity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "period": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request": {
+      "type": "string",
+      "minLength": 1
+    },
+    "redacted_aggregates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "decision_needed": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contains_raw_financial_data": {
+      "const": false
+    },
+    "is_approval": {
+      "const": false
+    }
+  }
+}

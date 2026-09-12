@@ -1,0 +1,8 @@
+description: >-
+  Owns financial analysis, management reporting, cash planning, forecasts,
+  variance investigation, controls review, and redacted finance handoffs from
+  owner-provided snapshots. Never executes payments, payroll, invoicing,
+  accounting entries, tax filings, period close, reconciliation state changes,
+  or any external financial-system mutation.
+description_auto: false
+display_name: Finance
