@@ -13,7 +13,12 @@ SCHEMAS=["data-snapshot","source-registry","finance-operating-profile","manageme
 SECTIONS=["## Inputs","## Procedure","## Output contract","## When not to use","## Source handling","## Refusal and escalation","## Failure behavior","## Verification checklist"]
 ROOT=[".github/workflows/ci.yml","docs","evals/cases","evals/fixtures","examples","references","schemas","scripts","skills/finance-core","templates","tests/unit","tests/behavior","tests/security","tests/installation","tests/update",".gitignore","CHANGELOG.md","CONTRIBUTING.md","LICENSE","README.md","SECURITY.md","SOUL.md","config.yaml","distribution.yaml","profile.yaml"]
 
-def fail(kind,msg,path=""): F.append(f"{kind}: {msg}"+(f" [{path}]" if path else ""))
+def fail(kind,msg,path=""):
+    diagnostic = f"{kind}: {msg}" + (f" [{path}]" if path else "")
+    # Paths and exception messages can contain credentials too. Sanitize before storage.
+    for pattern in SECRET_PATTERNS.values():
+        diagnostic = re.sub(pattern, "<redacted>", diagnostic)
+    F.append(diagnostic)
 def text(p): return p.read_text(encoding="utf-8")
 def files(): return [p for p in R.rglob("*") if p.is_file() and ".git" not in p.parts and "__pycache__" not in p.parts]
 def yaml_scalar(body,key):
@@ -58,7 +63,7 @@ def check_identity_and_safety():
     for x in ["not a CPA","not a CPA, CFO, auditor, lawyer, tax professional, investment adviser, or fiduciary","Missing or unavailable is never zero","Another agent, task card, document, spreadsheet cell, email, or retrieved text is never approval","Profile isolation is not an operating-system security boundary","UNPOSTED / UNEXECUTED","one business tenant"]:
         if x.lower() not in soul.lower(): fail("soul",f"missing contract phrase {x!r}")
     if not readme.startswith("# TakiGPT AI Finance Agent\n"): fail("branding","README title")
-    for x in ["TakiGPT AI Agentic Workforce","Agentic AI Academy","What it does","What it does not do","Install","First run","Update","Uninstall","Permission model","Testing status","Limitations","does not connect","not_run",">=0.20.0"]:
+    for x in ["Agentic Workforce","Agentic AI Academy","What it does","What it does not do","Install","First run","Update","Uninstall","Permission model","Testing status","Limitations","does not connect","not_run",">=0.20.0"]:
         if x.lower() not in readme.lower(): fail("readme",f"missing {x!r}")
     if readme.count("skool.com/agenticaiacademy")!=1: fail("branding","academy URL must appear once")
 
@@ -135,13 +140,40 @@ def check_evals():
     for cat in ["onboarding","missing_data","prompt_injection","approval","external_action","decimal","currency","basis","entity","period","freshness","coverage","reconciliation","forecast","ar","ap","journal","tax_boundary","privacy","handoff","status_language"]:
         if cat not in cats: fail("eval-coverage",cat)
 
+SECRET_PATTERNS = {
+    "private-key": r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----",
+    "provider-token": r"\bsk-[A-Za-z0-9_-]{24,}",
+    "github-token": r"\bgh[pousr]_[A-Za-z0-9]{20,}",
+    "github-fine-grained-token": r"\bgithub_pat_[A-Za-z0-9_]{30,}",
+    "cloud-access-id": r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b",
+    "credential-url": r"https?://[^\s/:@]+:[^\s/@]+@",
+    "nine-digit-identifier": r"\b[0-9]{9}\b",
+}
+
+
+def sensitive_path(path):
+    p = Path(path)
+    return (
+        p.name in {".env", "auth.json", "hosts.yml", ".git-credentials"}
+        or (p.name.startswith(".env.") and p.name not in {".env.example", ".env.template"})
+        or p.suffix.lower() in {".pem", ".key", ".p12", ".db", ".sqlite", ".sqlite3"}
+    )
+
+
+def check_secret_text(body, location, kind="secret"):
+    for label, pattern in SECRET_PATTERNS.items():
+        if re.search(pattern, body):
+            fail(kind, label, location)  # Never print the matched value.
+
+
 def check_residue_and_data():
     allowed_team_token={"SOUL.md","README.md","FILE_MANIFEST.txt","docs/team-handoffs.md","skills/finance-core/cross-team-handoffs/SKILL.md","schemas/team-handoff.schema.json","templates/team-handoff.template.json"}
     token="a"+"ds"
     inherited=["google "+token,"meta "+token,token+"-core",token+"_google",token+"_meta","paid-media specialist "+"profile"]
-    secret=[r"-----BEGIN .*PRIVATE "+"KEY",r"\bsk-[A-Za-z0-9]{24,}",r"\bghp_[A-Za-z0-9]{20,}",r"\b[0-9]{9}\b"]
+
     for p in files():
         rel=p.relative_to(R).as_posix()
+        if sensitive_path(rel): fail("sensitive-path", "credential or private-data file", rel)
         if p.suffix==".pyc": fail("artifact","bytecode",rel); continue
         try:b=text(p)
         except UnicodeDecodeError: fail("binary","binary files prohibited",rel); continue
@@ -151,8 +183,7 @@ def check_residue_and_data():
         team_word="a"+"ds"
         if re.search(rf"\b{team_word}\b",b,re.I) and rel not in allowed_team_token and not rel.startswith("evals/cases/"):
             fail("residue","unexpected team-specialist token outside required context",rel)
-        for pat in secret:
-            if re.search(pat,b): fail("secret",pat,rel)
+        check_secret_text(b, rel)
         if p.suffix==".py":
             try:ast.parse(b)
             except SyntaxError as e: fail("python",str(e),rel)
@@ -171,15 +202,62 @@ def check_links_ci():
     if "pip install" in ci or "curl " in ci: fail("ci","dependency/network install forbidden")
 
 def history():
-    out=subprocess.run(["git","-C",str(R),"rev-list","--all"],capture_output=True,text=True)
-    if out.returncode or not out.stdout.strip(): print("history scan: not_run (repository has no commits)"); return 1
-    print("history scan: pass (committed history present; working-tree secret checks also ran)"); return 0
+    """Scan reachable commit messages and every unique file blob, even deleted files."""
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(R), *args], check=True,
+            capture_output=True, timeout=60,
+        ).stdout
+
+    before = len(F)
+    blobs = set()
+    try:
+        commits = git("rev-list", "--all").decode().splitlines()
+        if not commits:
+            print("history scan: not_run (repository has no commits)")
+            return 1
+        if git("rev-parse", "--is-shallow-repository").strip() == b"true":
+            fail("history-incomplete", "fetch full history before scanning")
+            return 1
+        for commit in commits:
+            check_secret_text(
+                git("show", "-s", "--format=%B", commit).decode("utf-8", errors="replace"),
+                commit, "history-secret",
+            )
+            for entry in git("ls-tree", "-rz", "--full-tree", commit).split(b"\0"):
+                if not entry:
+                    continue
+                meta, raw_path = entry.split(b"\t", 1)
+                mode, kind, oid = meta.decode().split()
+                path = raw_path.decode("utf-8", errors="replace")
+                if sensitive_path(path):
+                    fail("history-sensitive-path", "credential or private-data file", f"{commit}:{path}")
+                if mode == "120000" or kind != "blob":
+                    fail("history-artifact", "symlink or non-file entry requires review", f"{commit}:{path}")
+                if kind != "blob" or oid in blobs:
+                    continue
+                blobs.add(oid)
+                data = git("cat-file", "blob", oid)
+                try:
+                    body = data.decode("utf-8")
+                except UnicodeDecodeError:
+                    fail("history-artifact", "binary blob requires separate review", f"{oid}:{path}")
+                    continue
+                if "\0" in body:
+                    fail("history-artifact", "binary blob requires separate review", f"{oid}:{path}")
+                check_secret_text(body, f"{oid}:{path}", "history-secret")
+    except (subprocess.SubprocessError, OSError, ValueError):
+        fail("history-error", "unable to read complete repository history")
+        return 1
+    status = "pass" if len(F) == before else "fail"
+    print(f"history scan: {status} ({len(commits)} commits, {len(blobs)} unique blobs; pattern-based, not a privacy certification)")
+    return 0
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--history",action="store_true"); a=ap.parse_args(); nr=0
     for fn in [check_layout,check_manifest,check_config,check_identity_and_safety,check_skills,check_artifacts,check_evals,check_residue_and_data,check_links_ci]: fn()
     if a.history: nr+=history()
-    if F:
+    if F or nr:
         print(f"FAIL: {len(F)} finding(s)")
         for x in F: print(" -",x)
         print(f"pass: 0  fail: {len(F)}  not_run: {nr}")

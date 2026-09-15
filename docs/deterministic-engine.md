@@ -26,3 +26,5 @@ JSON duplicate members, JSON floats, NaN/Infinity constants, unknown fields, and
 - `reconciliation_status`: `reconciled` only when source_complete and controls_tested are true and difference is zero; otherwise `unreconciled` or `not_tested`.
 
 Rate/runway output reports precision and rounding method. Monetary output uses owner-confirmed minor units. Engine arithmetic does not establish source truth or accounting appropriateness.
+
+Money sums and differences use a local Decimal context sized from the integral and fractional digits of their inputs, with carry space for all terms. Negation uses an exact sign change. These operations do not inherit a caller's lower precision or silently discard cents on large accepted values.

@@ -9,7 +9,7 @@ import sys
 import tempfile
 import unittest
 from datetime import date, timedelta
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -73,6 +73,54 @@ class MoneyTests(unittest.TestCase):
 
     def test_negative_zero_is_normalized(self):
         self.assertEqual(finance.format_money("-0.00", 2), "0.00")
+
+
+class ExactArithmeticTests(unittest.TestCase):
+    def test_sum_preserves_carry_growth(self):
+        rows = [{"amount": "9" * 40 + ".99"}, {"amount": "0.01"}]
+        self.assertEqual(finance.sum_money(rows, "amount", 2),
+                         Decimal("1" + "0" * 40 + ".00"))
+
+    def test_sum_preserves_mixed_sign_cancellation(self):
+        magnitude = "1" + "0" * 40
+        rows = [{"amount": magnitude + ".01"}, {"amount": "-" + magnitude + ".00"}]
+        self.assertEqual(finance.sum_money(rows, "amount", 2), Decimal("0.01"))
+
+    def test_forecast_net_flow_preserves_large_cancellation(self):
+        magnitude = "1" + "0" * 40
+        weeks = [{"week": i + 1,
+                  "week_start": (date(2026, 1, 5) + timedelta(weeks=i)).isoformat(),
+                  "receipts": magnitude + ".01",
+                  "disbursements": magnitude + ".00"} for i in range(13)]
+        result = finance.cash_forecast("0.00", weeks, "USD", 2)
+        self.assertTrue(all(row["net_cash_flow"] == "0.01" for row in result))
+        self.assertEqual(result[-1]["closing_cash"], "0.13")
+
+    def test_sum_preserves_cents_beyond_default_decimal_precision(self):
+        amount = "1" + "0" * 35 + ".01"
+        rows = [{"amount": amount}, {"amount": "0.01"}]
+        self.assertEqual(finance.sum_money(rows, "amount", 2),
+                         Decimal("1" + "0" * 35 + ".02"))
+
+    def test_variance_does_not_inherit_callers_precision(self):
+        with localcontext() as ctx:
+            ctx.prec = 4
+            result = finance.budget_variance("1000000.01", "0.00", "expense", 2)
+        self.assertEqual(result["raw_variance_actual_minus_budget"], "-1000000.01")
+        self.assertEqual(result["favorable_variance"], "1000000.01")
+
+    def test_balance_equation_preserves_large_small_differences(self):
+        integer = "1" + "0" * 35
+        result = finance.balance_sheet_check(integer + ".01", "0.00", integer, 2)
+        self.assertEqual(result, {"difference": "0.01", "status": "unbalanced"})
+
+    def test_forecast_preserves_cents_with_large_opening_balance(self):
+        integer = "1" + "0" * 35
+        weeks = [{"week": i + 1,
+                  "week_start": (date(2026, 1, 5) + timedelta(weeks=i)).isoformat(),
+                  "receipts": "0.01", "disbursements": "0.00"} for i in range(13)]
+        result = finance.cash_forecast(integer + ".00", weeks, "USD", 2)
+        self.assertEqual(result[-1]["closing_cash"], integer + ".13")
 
 
 class ContextTests(unittest.TestCase):

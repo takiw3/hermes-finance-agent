@@ -202,6 +202,7 @@ tests/security/__init__.py
 tests/security/test_security_contracts.py
 tests/unit/__init__.py
 tests/unit/test_finance_logic.py
+tests/unit/test_repository_validation.py
 tests/update/__init__.py
 tests/update/test_update_preserves_owner_data.sh
 tests/update/test_version_compatibility.py

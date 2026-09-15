@@ -143,15 +143,24 @@ def validate_context(context: dict[str, Any]) -> dict[str, Any]:
     return dict(context)
 
 
+def _sum_exact(values: list[Decimal]) -> Decimal:
+    """Reserve all integral/fractional digits plus carry space for the sum."""
+    integral = max((max(value.adjusted() + 1, 0) for value in values), default=1)
+    fractional = max((max(-int(value.as_tuple().exponent), 0) for value in values), default=0)
+    with localcontext() as ctx:
+        ctx.prec = integral + fractional + len(str(len(values))) + 1
+        return sum(values, Decimal("0"))
+
+
 def sum_money(rows: list[dict[str, Any]], field: str, minor_units: int, expected_currency: str | None = None) -> Decimal:
-    total = Decimal("0")
+    values = []
     for index, row in enumerate(rows):
         if field not in row or row[field] is None:
             raise ValidationError(f"row {index} missing required {field}; missing is not zero")
         if expected_currency is not None and row.get("currency") != expected_currency:
             raise ValidationError(f"row {index} currency does not match {expected_currency}; provide an explicit dated FX method")
-        total += at_precision(row[field], minor_units)
-    return total
+        values.append(at_precision(row[field], minor_units))
+    return _sum_exact(values)
 
 
 def rate(numerator: Any, denominator: Any, precision: int, rounding_method: str) -> dict[str, Any]:
@@ -190,7 +199,7 @@ def cash_forecast(opening_cash: Any, weeks: list[dict[str, Any]], currency: str,
             raise ValidationError(f"week {expected_week} opening_cash breaks roll-forward")
         receipts = at_precision(row["receipts"], minor_units)
         disbursements = at_precision(row["disbursements"], minor_units)
-        closing = opening + receipts - disbursements
+        closing = _sum_exact([opening, receipts, disbursements.copy_negate()])
         output.append({
             "week": expected_week,
             "week_start": week_start.isoformat(),
@@ -199,7 +208,7 @@ def cash_forecast(opening_cash: Any, weeks: list[dict[str, Any]], currency: str,
             "opening_cash": fmt(opening, minor_units),
             "receipts": fmt(receipts, minor_units),
             "disbursements": fmt(disbursements, minor_units),
-            "net_cash_flow": fmt(receipts - disbursements, minor_units),
+            "net_cash_flow": fmt(_sum_exact([receipts, disbursements.copy_negate()]), minor_units),
             "closing_cash": fmt(closing, minor_units),
         })
         opening = closing
@@ -225,8 +234,8 @@ def budget_variance(budget: Any, actual: Any, account_type: str, minor_units: in
     if account_type not in {"revenue", "expense"}:
         raise ValidationError("account_type must be revenue or expense; classification may not be inferred")
     b, a = at_precision(budget, minor_units), at_precision(actual, minor_units)
-    raw = a - b
-    favorable = raw if account_type == "revenue" else -raw
+    raw = _sum_exact([a, b.copy_negate()])
+    favorable = raw if account_type == "revenue" else raw.copy_negate()
     return {"budget": fmt(b, minor_units), "actual": fmt(a, minor_units), "raw_variance_actual_minus_budget": fmt(raw, minor_units), "favorable_variance": fmt(favorable, minor_units)}
 
 
@@ -245,7 +254,11 @@ def ar_bucket(days_past_due: int) -> str:
 
 
 def balance_sheet_check(assets: Any, liabilities: Any, equity: Any, minor_units: int) -> dict[str, str]:
-    difference = at_precision(assets, minor_units) - at_precision(liabilities, minor_units) - at_precision(equity, minor_units)
+    difference = _sum_exact([
+        at_precision(assets, minor_units),
+        at_precision(liabilities, minor_units).copy_negate(),
+        at_precision(equity, minor_units).copy_negate(),
+    ])
     return {"difference": fmt(difference, minor_units), "status": "balanced" if difference == 0 else "unbalanced"}
 
 
