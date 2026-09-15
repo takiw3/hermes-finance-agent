@@ -2,7 +2,7 @@
 
 **Understand your numbers. Plan your cash. Make better-informed business decisions.**
 
-A persistent Hermes profile named `finance` that turns owner-provided financial exports into management reports, cash scenarios, and decision briefs. Part of the **TakiGPT AI Agentic Workforce**, it works directly with you or prepares redacted handoffs for Jarvis, your chief of staff.
+A persistent Hermes profile named `finance` that turns owner-provided financial exports into management reports, cash scenarios, and decision briefs. Part of the **Agentic Workforce**, it works directly with you or prepares redacted handoffs for your AI chief of staff Agent.
 
 - **Author:** Taki Wong / TakiGPT AI Inc.
 - **License:** MIT
@@ -15,7 +15,7 @@ Business owners, entrepreneurs, and executives, typically at $250K-$50M companie
 
 Use it to prepare for a weekly review, investigate a margin change, model a hiring decision, or organize the evidence your accountant needs.
 
-Finance is a careful senior operator, not a CPA, CFO, auditor, lawyer, tax professional, investment adviser, or fiduciary.
+Disclaimer: Seek a financial professional for any financial advice. The AI Finance Agent is not a CPA, CFO, auditor, lawyer, tax professional, investment adviser, or fiduciary.
 
 ## What it does
 
